@@ -6,12 +6,23 @@ import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
     private Button mTrueButton;
     private Button mFalseButton;
+    private Button mNextButton;
+    private TextView mQuestionTextView;
+
+    private Question[] mQuestionBank = new Question[] {
+            new Question(R.string.question_australia, true),
+            new Question(R.string.question_africa, true),
+            new Question(R.string.question_oceans, true)
+    };
+
+    private int mCurrentIndex = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,6 +31,10 @@ public class MainActivity extends AppCompatActivity {
 
         mTrueButton = findViewById(R.id.true_button);
         mFalseButton = findViewById(R.id.false_button);
+        mNextButton = findViewById(R.id.next_button);
+        mQuestionTextView = findViewById(R.id.question_text_view);
+
+        updateQuestion();
 
         mTrueButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -44,5 +59,23 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+
+        mNextButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                mCurrentIndex++;
+                mCurrentIndex %= mQuestionBank.length;
+
+                updateQuestion();
+
+            }
+        });
+
     }
+
+    private void updateQuestion () {
+        mQuestionTextView.setText(mQuestionBank[mCurrentIndex].getTextResId());
+    }
+
 }
