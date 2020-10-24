@@ -20,11 +20,4 @@ public class Question {
         return mAnswerTrue;
     }
 
-    public void setTextResId(int mTextResId) {
-        this.mTextResId = mTextResId;
-    }
-
-    public void setAnswerTrue(boolean mAnswerTrue) {
-        this.mAnswerTrue = mAnswerTrue;
-    }
 }
