@@ -14,7 +14,9 @@ import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getSimpleName();
-    private static final String KEY_INDEX = "index";
+    private static final String KEY_CURRENT_INDEX = "current_index";
+    private static final String KEY_COUNT_ANSWER = "count_answer";
+    private static final String KEY_QUESTION_BANK = "question_bank";
 
     private Button mTrueButton;
     private Button mFalseButton;
@@ -34,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
     };
 
     private int mCurrentIndex = 0;
+    private int mCountAnswer = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,7 +45,18 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "onCreate(Bundle) called");
 
         if (savedInstanceState != null) {
-            mCurrentIndex = savedInstanceState.getInt(KEY_INDEX, 0);
+
+            mCurrentIndex = savedInstanceState.getInt(KEY_CURRENT_INDEX, 0);
+            mCountAnswer = savedInstanceState.getInt(KEY_COUNT_ANSWER, 0);
+
+            Question[] newQuestionBank = new Question[mQuestionBank.length];
+
+            for (int i = 0; i < mQuestionBank.length; i++) {
+                newQuestionBank[i] = (Question) savedInstanceState.getSerializable(KEY_QUESTION_BANK + i);
+            }
+
+            mQuestionBank = newQuestionBank;
+
         }
 
         setContentView(R.layout.activity_main);
@@ -66,10 +80,21 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                Toast toast = Toast.makeText(MainActivity.this, checkAnswer(true), Toast.LENGTH_LONG);
+                try {
 
-                toast.setGravity(Gravity.CENTER, Gravity.AXIS_X_SHIFT, Gravity.AXIS_Y_SHIFT);
-                toast.show();
+                    mQuestionBank[mCurrentIndex].setUserAnswer(Boolean.TRUE);
+
+                    mCountAnswer++;
+
+                    showToastCheckAnswer();
+
+                    if (mCountAnswer == mQuestionBank.length) {
+                        showToastMark();
+                    }
+
+                } catch (Exception ex) {
+                    //Log.e(TAG, "mTrueButton Exception", ex);
+                }
 
             }
         });
@@ -78,10 +103,21 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                Toast toast = Toast.makeText(MainActivity.this, checkAnswer(false), Toast.LENGTH_LONG);
+                try {
 
-                toast.setGravity(Gravity.CENTER, Gravity.AXIS_X_SHIFT, Gravity.AXIS_Y_SHIFT);
-                toast.show();
+                    mQuestionBank[mCurrentIndex].setUserAnswer(Boolean.FALSE);
+
+                    mCountAnswer++;
+
+                    showToastCheckAnswer();
+
+                    if (mCountAnswer == mQuestionBank.length) {
+                        showToastMark();
+                    }
+
+                } catch (Exception ex) {
+                    //Log.e(TAG, "mFalseButton Exception", ex);
+                }
 
             }
         });
@@ -148,7 +184,12 @@ public class MainActivity extends AppCompatActivity {
 
         Log.i(TAG, "onSaveInstanceState");
 
-        outState.putInt(KEY_INDEX, mCurrentIndex);
+        outState.putInt(KEY_CURRENT_INDEX, mCurrentIndex);
+        outState.putInt(KEY_COUNT_ANSWER, mCountAnswer);
+
+        for (int i = 0; i < mQuestionBank.length; i++) {
+            outState.putSerializable(KEY_QUESTION_BANK + i, mQuestionBank[i]);
+        }
 
     }
 
@@ -173,14 +214,34 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void updateQuestion () {
-        mQuestionTextView.setText(mQuestionBank[mCurrentIndex].getTextResId());
+    private void showToastCheckAnswer () {
+
+        Toast toast = Toast.makeText(MainActivity.this, mQuestionBank[mCurrentIndex].checkAnswer() ? R.string.correct_toast : R.string.incorrect_toast, Toast.LENGTH_LONG);
+
+        toast.setGravity(Gravity.CENTER, Gravity.AXIS_X_SHIFT, Gravity.AXIS_Y_SHIFT);
+        toast.show();
+
     }
 
-    private int checkAnswer (boolean userAnswer) {
+    private void showToastMark () {
 
-        return (userAnswer == mQuestionBank[mCurrentIndex].isAnswerTrue()) ? R.string.correct_toast : R.string.incorrect_toast;
+        int trueAnswers = 0;
 
+        for (Question question : mQuestionBank) {
+            if (question.checkAnswer()) trueAnswers++;
+        }
+
+        double mark = ((double)trueAnswers/mCountAnswer) * 100;
+
+        Toast toast = Toast.makeText(MainActivity.this, Double.toString(mark), Toast.LENGTH_LONG);
+
+        toast.setGravity(Gravity.CENTER, Gravity.AXIS_X_SHIFT, Gravity.AXIS_Y_SHIFT);
+        toast.show();
+
+    }
+
+    private void updateQuestion () {
+        mQuestionTextView.setText(mQuestionBank[mCurrentIndex].getTextResId());
     }
 
 }
