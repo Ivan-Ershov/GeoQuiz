@@ -1,8 +1,11 @@
 package com.example.geoquiz;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
@@ -17,9 +20,11 @@ public class MainActivity extends AppCompatActivity {
     private static final String KEY_CURRENT_INDEX = "current_index";
     private static final String KEY_COUNT_ANSWER = "count_answer";
     private static final String KEY_QUESTION_BANK = "question_bank";
+    private static final int REQUEST_CODE_CHEAT_ACTIVITY = 0;
 
     private Button mTrueButton;
     private Button mFalseButton;
+    private Button mCheatButton;
     private ImageButton mNextButton;
     private ImageButton mPrevButton;
     private TextView mQuestionTextView;
@@ -37,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
 
     private int mCurrentIndex = 0;
     private int mCountAnswer = 0;
+    private boolean mIsCheater;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
 
         mTrueButton = findViewById(R.id.true_button);
         mFalseButton = findViewById(R.id.false_button);
+        mCheatButton = findViewById(R.id.cheat_button);
         mNextButton = findViewById(R.id.next_button);
         mPrevButton = findViewById(R.id.prev_button);
         mQuestionTextView = findViewById(R.id.question_text_view);
@@ -122,19 +129,56 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        mCheatButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivityForResult(CheatActivity.newIntent(MainActivity.this, mQuestionBank[mCurrentIndex].isAnswerTrue()), REQUEST_CODE_CHEAT_ACTIVITY);
+            }
+        });
+
         mNextButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                mIsCheater = false;
+
                 showNextQuestion();
+
             }
         });
 
         mPrevButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                mIsCheater = false;
+
                 showPrevQuestion();
+
             }
         });
+
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (resultCode != RESULT_OK) {
+            return;
+        }
+
+        if (requestCode == REQUEST_CODE_CHEAT_ACTIVITY) {
+
+            if (data != null) {
+
+                mIsCheater = CheatActivity.wasShowAnswer(data);
+
+                Log.d(TAG, "Cheat set is " + mIsCheater);
+
+            }
+
+        }
 
     }
 
@@ -214,9 +258,16 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    @SuppressLint("ShowToast")
     private void showToastCheckAnswer () {
 
-        Toast toast = Toast.makeText(MainActivity.this, mQuestionBank[mCurrentIndex].checkAnswer() ? R.string.correct_toast : R.string.incorrect_toast, Toast.LENGTH_LONG);
+        Toast toast;
+
+        if (mIsCheater) {
+            toast = Toast.makeText(MainActivity.this, R.string.judgment_toast, Toast.LENGTH_LONG);
+        } else {
+            toast = Toast.makeText(MainActivity.this, mQuestionBank[mCurrentIndex].checkAnswer() ? R.string.correct_toast : R.string.incorrect_toast, Toast.LENGTH_LONG);
+        }
 
         toast.setGravity(Gravity.CENTER, Gravity.AXIS_X_SHIFT, Gravity.AXIS_Y_SHIFT);
         toast.show();

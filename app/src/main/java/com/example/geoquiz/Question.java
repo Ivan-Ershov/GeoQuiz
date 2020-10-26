@@ -1,7 +1,5 @@
 package com.example.geoquiz;
 
-import android.os.Parcelable;
-
 import java.io.Serializable;
 
 public class Question implements Serializable {
@@ -15,6 +13,10 @@ public class Question implements Serializable {
         mTextResId = textResId;
         mAnswerTrue = answerTrue;
 
+    }
+
+    public boolean isAnswerTrue() {
+        return mAnswerTrue;
     }
 
     public int getTextResId() {
@@ -31,9 +33,7 @@ public class Question implements Serializable {
     }
 
     public boolean checkAnswer () {
-
         return mUserAnswer == mAnswerTrue;
-
     }
 
 }
