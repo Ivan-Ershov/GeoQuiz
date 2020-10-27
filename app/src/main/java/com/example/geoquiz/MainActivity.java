@@ -1,10 +1,5 @@
 package com.example.geoquiz;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-
-import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -15,13 +10,19 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final String KEY_CURRENT_INDEX = "current_index";
     private static final String KEY_COUNT_ANSWER = "count_answer";
     private static final String KEY_QUESTION_BANK = "question_bank";
     private static final String KEY_COUNT_USE_CHEAT = "count_use_cheat";
+    private static final String KEY_CHEAT_COUNT = "cheat_count";
     private static final int REQUEST_CODE_CHEAT_ACTIVITY = 0;
+    private static final int DEFAULT_CHEAT_COUNT = 1;
 
     private Button mTrueButton;
     private Button mFalseButton;
@@ -44,6 +45,7 @@ public class MainActivity extends AppCompatActivity {
     private int mCurrentIndex = 0;
     private int mCountAnswer = 0;
     private int mCountUseCheat = 0;
+    private int mCheatCount = DEFAULT_CHEAT_COUNT;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
             mCurrentIndex = savedInstanceState.getInt(KEY_CURRENT_INDEX, 0);
             mCountAnswer = savedInstanceState.getInt(KEY_COUNT_ANSWER, 0);
             mCountUseCheat = savedInstanceState.getInt(KEY_COUNT_USE_CHEAT, 0);
+            mCheatCount = savedInstanceState.getInt(KEY_CHEAT_COUNT, DEFAULT_CHEAT_COUNT);
 
             Question[] newQuestionBank = new Question[mQuestionBank.length];
 
@@ -152,7 +155,9 @@ public class MainActivity extends AppCompatActivity {
         mCheatButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivityForResult(CheatActivity.newIntent(MainActivity.this, mQuestionBank[mCurrentIndex].isAnswerTrue()), REQUEST_CODE_CHEAT_ACTIVITY);
+                if (mCheatCount > 0) {
+                    startActivityForResult(CheatActivity.newIntent(MainActivity.this, mQuestionBank[mCurrentIndex].isAnswerTrue(), mCheatCount), REQUEST_CODE_CHEAT_ACTIVITY);
+                }
             }
         });
 
@@ -184,6 +189,7 @@ public class MainActivity extends AppCompatActivity {
 
             mQuestionBank[mCurrentIndex].hasCheat();
 
+            mCheatCount--;
             mCountUseCheat++;
 
             if (mCountAnswer == (mQuestionBank.length - mCountUseCheat)) {
@@ -243,6 +249,7 @@ public class MainActivity extends AppCompatActivity {
         outState.putInt(KEY_CURRENT_INDEX, mCurrentIndex);
         outState.putInt(KEY_COUNT_ANSWER, mCountAnswer);
         outState.putInt(KEY_COUNT_USE_CHEAT, mCountUseCheat);
+        outState.putInt(KEY_CHEAT_COUNT, mCheatCount);
 
         for (int i = 0; i < mQuestionBank.length; i++) {
             outState.putSerializable(KEY_QUESTION_BANK + i, mQuestionBank[i]);
