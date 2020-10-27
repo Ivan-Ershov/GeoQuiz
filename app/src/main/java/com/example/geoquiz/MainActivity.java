@@ -20,6 +20,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String KEY_CURRENT_INDEX = "current_index";
     private static final String KEY_COUNT_ANSWER = "count_answer";
     private static final String KEY_QUESTION_BANK = "question_bank";
+    private static final String KEY_COUNT_USE_CHEAT = "count_use_cheat";
     private static final int REQUEST_CODE_CHEAT_ACTIVITY = 0;
 
     private Button mTrueButton;
@@ -42,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
 
     private int mCurrentIndex = 0;
     private int mCountAnswer = 0;
-    private boolean mIsCheater;
+    private int mCountUseCheat = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
 
             mCurrentIndex = savedInstanceState.getInt(KEY_CURRENT_INDEX, 0);
             mCountAnswer = savedInstanceState.getInt(KEY_COUNT_ANSWER, 0);
+            mCountUseCheat = savedInstanceState.getInt(KEY_COUNT_USE_CHEAT, 0);
 
             Question[] newQuestionBank = new Question[mQuestionBank.length];
 
@@ -87,6 +89,14 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
+                if (mQuestionBank[mCurrentIndex].isHasCheat()) {
+
+                    showToastCheater();
+
+                    return;
+
+                }
+
                 try {
 
                     mQuestionBank[mCurrentIndex].setUserAnswer(Boolean.TRUE);
@@ -95,7 +105,7 @@ public class MainActivity extends AppCompatActivity {
 
                     showToastCheckAnswer();
 
-                    if (mCountAnswer == mQuestionBank.length) {
+                    if (mCountAnswer == (mQuestionBank.length - mCountUseCheat)) {
                         showToastMark();
                     }
 
@@ -110,6 +120,14 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
+                if (mQuestionBank[mCurrentIndex].isHasCheat()) {
+
+                    showToastCheater();
+
+                    return;
+
+                }
+
                 try {
 
                     mQuestionBank[mCurrentIndex].setUserAnswer(Boolean.FALSE);
@@ -118,9 +136,11 @@ public class MainActivity extends AppCompatActivity {
 
                     showToastCheckAnswer();
 
-                    if (mCountAnswer == mQuestionBank.length) {
+                    if (mCountAnswer == (mQuestionBank.length - mCountUseCheat)) {
                         showToastMark();
                     }
+
+                    Log.d(TAG, "" + mCountAnswer + " " + mQuestionBank.length + " " + mCountUseCheat);
 
                 } catch (Exception ex) {
                     //Log.e(TAG, "mFalseButton Exception", ex);
@@ -139,22 +159,14 @@ public class MainActivity extends AppCompatActivity {
         mNextButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                mIsCheater = false;
-
                 showNextQuestion();
-
             }
         });
 
         mPrevButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                mIsCheater = false;
-
                 showPrevQuestion();
-
             }
         });
 
@@ -168,14 +180,14 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        if (requestCode == REQUEST_CODE_CHEAT_ACTIVITY) {
+        if ((requestCode == REQUEST_CODE_CHEAT_ACTIVITY) && (data != null) && CheatActivity.wasShowAnswer(data)) {
 
-            if (data != null) {
+            mQuestionBank[mCurrentIndex].hasCheat();
 
-                mIsCheater = CheatActivity.wasShowAnswer(data);
+            mCountUseCheat++;
 
-                Log.d(TAG, "Cheat set is " + mIsCheater);
-
+            if (mCountAnswer == (mQuestionBank.length - mCountUseCheat)) {
+                showToastMark();
             }
 
         }
@@ -223,13 +235,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onSaveInstanceState(@NonNull Bundle outState) {
+    protected void onSaveInstanceState (@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
 
         Log.i(TAG, "onSaveInstanceState");
 
         outState.putInt(KEY_CURRENT_INDEX, mCurrentIndex);
         outState.putInt(KEY_COUNT_ANSWER, mCountAnswer);
+        outState.putInt(KEY_COUNT_USE_CHEAT, mCountUseCheat);
 
         for (int i = 0; i < mQuestionBank.length; i++) {
             outState.putSerializable(KEY_QUESTION_BANK + i, mQuestionBank[i]);
@@ -258,18 +271,22 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    @SuppressLint("ShowToast")
     private void showToastCheckAnswer () {
 
-        Toast toast;
-
-        if (mIsCheater) {
-            toast = Toast.makeText(MainActivity.this, R.string.judgment_toast, Toast.LENGTH_LONG);
-        } else {
-            toast = Toast.makeText(MainActivity.this, mQuestionBank[mCurrentIndex].checkAnswer() ? R.string.correct_toast : R.string.incorrect_toast, Toast.LENGTH_LONG);
-        }
+        Toast toast = Toast.makeText(MainActivity.this, mQuestionBank[mCurrentIndex].checkAnswer() ? R.string.correct_toast : R.string.incorrect_toast, Toast.LENGTH_LONG);
 
         toast.setGravity(Gravity.CENTER, Gravity.AXIS_X_SHIFT, Gravity.AXIS_Y_SHIFT);
+
+        toast.show();
+
+    }
+
+    private void showToastCheater () {
+
+        Toast toast = Toast.makeText(MainActivity.this, R.string.judgment_toast, Toast.LENGTH_LONG);
+
+        toast.setGravity(Gravity.CENTER, Gravity.AXIS_X_SHIFT, Gravity.AXIS_Y_SHIFT);
+
         toast.show();
 
     }

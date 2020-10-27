@@ -1,5 +1,6 @@
 package com.example.geoquiz;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Context;
@@ -14,11 +15,13 @@ public class CheatActivity extends AppCompatActivity {
     private static final String TAG = CheatActivity.class.getSimpleName();
     private static final String EXTRA_ANSWER_TRUE = "com.example.geoquiz.answer_is_true";
     private static final String EXTRA_SHOW_ANSWER = "com.example.geoquiz.show_answer";
+    private static final String KEY_IS_CHEAT = "is_cheat";
 
     private TextView mAnswerTextView;
     private Button mShowAnswerButton;
 
     private boolean mAnswerTrue;
+    private boolean mIsCheat = false;
 
     public static Intent newIntent (Context packageContext, boolean answerTrue) {
 
@@ -35,8 +38,12 @@ public class CheatActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate (Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if (savedInstanceState != null) {
+            mIsCheat = savedInstanceState.getBoolean(KEY_IS_CHEAT, false);
+        }
 
         mAnswerTrue = getIntent().getBooleanExtra(EXTRA_ANSWER_TRUE, false);
 
@@ -45,15 +52,19 @@ public class CheatActivity extends AppCompatActivity {
         mAnswerTextView = findViewById(R.id.answer_text_view);
         mShowAnswerButton = findViewById(R.id.show_answer_button);
 
+        if (mIsCheat) {
+
+            showAnswer();
+
+            setResultShowAnswerTrue();
+
+        }
+
         mShowAnswerButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-                if (mAnswerTrue) {
-                    mAnswerTextView.setText(R.string.true_button);
-                } else {
-                    mAnswerTextView.setText(R.string.false_button);
-                }
+                showAnswer();
 
                 setResultShowAnswerTrue();
 
@@ -62,7 +73,25 @@ public class CheatActivity extends AppCompatActivity {
 
     }
 
-    private void setResultShowAnswerTrue() {
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        outState.putBoolean(KEY_IS_CHEAT, mIsCheat);
+
+    }
+
+    private void showAnswer () {
+
+        if (mAnswerTrue) {
+            mAnswerTextView.setText(R.string.true_button);
+        } else {
+            mAnswerTextView.setText(R.string.false_button);
+        }
+
+    }
+
+    private void setResultShowAnswerTrue () {
 
         Intent data = new Intent();
 
@@ -70,7 +99,7 @@ public class CheatActivity extends AppCompatActivity {
 
         setResult(RESULT_OK, data);
 
-        Log.d(TAG, "setResult called");
+        mIsCheat = true;
 
     }
 
