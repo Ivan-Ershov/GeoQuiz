@@ -5,7 +5,7 @@
 
 ## Russian
 
-* [О приложении](#о_приложении)
+* [О приложении](#оприложении)
 * [Установка](#установка)
 
 ### О приложении
@@ -35,6 +35,6 @@ Install application:
 
 1. Download file app-release.apk (path file: app/release/app-release.apk).
 
-2. Open file app-release.apk. Maybe you need in the settings allow installation from unknown sources
+2. Open file app-release.apk. Maybe you need in the settings allow installation from unknown sources.
 
 3. Run application GeoQuiz.
