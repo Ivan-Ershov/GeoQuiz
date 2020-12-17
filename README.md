@@ -3,7 +3,7 @@
 1. [English](#English)
 2. [Russian](#Russian)
 
-##Russian
+## Russian
 
 * [О приложении](#о_приложении)
 * [Установка](#установка)
@@ -21,7 +21,7 @@
 
 3. Запустить приложение GeoQuiz.
 
-##English
+## English
 
 * [About](#about)
 * [Install](#install)
